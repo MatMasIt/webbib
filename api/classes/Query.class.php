@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  Booking class
+ *  Query class
  * 
  *  Handles db querying
  */

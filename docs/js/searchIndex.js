@@ -383,7 +383,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Query",
             "name": "Query",
-            "summary": "Booking\u0020class",
+            "summary": "Query\u0020class",
             "url": "classes/Query.html"
         },                {
             "fqsen": "\\Query\u003A\u003A__construct\u0028\u0029",
