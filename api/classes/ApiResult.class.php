@@ -75,20 +75,22 @@ class ApiResult
      */
     public function send(): void
     {
-        if ($this->data) {
+        if ($this->data!==false) {
             http_response_code(200);
             $final = [
                 "ok" => true,
-                "data" => $this->data
+                "data" => $this->data,
+                "uuid" => UUID::v4()
             ];
         } else {
-            http_response_code($this->erro["http"]);
+            http_response_code($this->error["http"]);
             $final = [
                 "ok" => false,
                 "error" => [
                     "code" => $this->error["code"],
                     "description" => $this->error["description"]
-                ]
+                ],
+                "uuid" => UUID::v4()
             ];
         }
         $json = json_encode($final, JSON_PRETTY_PRINT);

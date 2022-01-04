@@ -47,7 +47,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
      */
     public string $passwordHash;
     /**
-    * Session token
+     * Session token
      */
     public string $token;
     /**
@@ -217,7 +217,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
         $this->lastEdit = time();
         $this->created = time();
         $this->emailToken = bin2hex(random_bytes(16));
-        $s = $this->pdo->prepare("UPDATE " . User::tableName . "SET name=:name, surname=:surname, birthDate=:birthDate, email=:email, allowLogin=:allowLogin, passwordHash=:passwordHash, isStaff=:isStaff, enabled=:enabled, token=:token, emailToken=:emailToken, lastEdit=:lastEdit, created=:created WHERE id=:id");
+        $s = $this->pdo->prepare("UPDATE " . User::tableName . " SET name=:name, surname=:surname, birthDate=:birthDate, email=:email, allowLogin=:allowLogin, passwordHash=:passwordHash, isStaff=:isStaff, enabled=:enabled, token=:token, emailToken=:emailToken, lastEdit=:lastEdit, created=:created WHERE id=:id");
         $s->execute([
             ":id" => $this->id,
             ":name" => $this->name,
@@ -225,7 +225,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
             ":birthDate" => $this->birthDate,
             ":email" => $this->email,
             ":allowLogin" => (int) $this->allowLogin,
-            ":passwordHash" => "lol",
+            ":passwordHash" => $this->passwordHash,
             ":enabled" => (int) $this->enabled,
             ":token" => $this->token,
             ":emailToken" => $this->emailToken,
@@ -321,7 +321,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
      */
     public function fromToken(string $token): void
     {
-        $p = $this->pdo->prepare("SELECT id FROM " . User::tableName . " WHERE token=:token");
+        $p = $this->pdo->prepare("SELECT id, isStaff, enabled, allowLogin FROM " . User::tableName . " WHERE token=:token");
         $p->execute([":token" => $token]);
         $res = $p->fetchAll(PDO::FETCH_ASSOC);
         if (count($res) == 0) {
@@ -329,6 +329,13 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
             $a->error(QError::NOT_FOUND);
             $a->send();
         }
+        if (!$res[0]["isStaff"] || $res[0]["allowLogin"]) {
+            $a = new ApiResult();
+            $a->error(QError::UNAUTHORIZED);
+            $a->send();
+        }
+        $this->u = new User($this->pdo, null);
+        $this->u->isStaff = true;
         $this->load($res[0]["id"]);
     }
     /**
@@ -351,10 +358,15 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
      */
     public function login(string $email, string $password): bool
     {
-        $p = $this->pdo->prepare("SELECT id,email,passwordHash FROM " . User::tableName . " WHERE email=:email");
-        $p->execute([":email" > $email]);
+        $p = $this->pdo->prepare("SELECT id,email,passwordHash, isStaff FROM " . User::tableName . " WHERE email=:email");
+        $p->execute([":email" => $email]);
         $r = $p->fetch(PDO::FETCH_ASSOC);
         if (!$r) {
+            $a = new ApiResult();
+            $a->error(QError::UNAUTHORIZED);
+            $a->send();
+        }
+        if (!$r["isStaff"] || $r["allowLogin"]) {
             $a = new ApiResult();
             $a->error(QError::UNAUTHORIZED);
             $a->send();
@@ -364,6 +376,9 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
             $a->error(QError::UNAUTHORIZED);
             $a->send();
         }
+        
+        $this->u = new User($this->pdo, null);
+        $this->u->isStaff = true;
         $this->load($r["id"]);
         $this->makeToken();
         return true;
