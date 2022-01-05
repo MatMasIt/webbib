@@ -104,24 +104,26 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
         $final = [];
         $paInfo = $q->getPaginationInfo();
         foreach ($q->execute() as $l) {
-            $final[] = [
+            $to = [
                 "type" => (string) get_class($this),
                 "version" => (string) Book::version,
-                "data" => [
-                    "id" => (int) $l["id"],
-                    "name" => (string)  $l["name"],
-                    "surname" => (string)  $l["surname"],
-                    "birthDate" => (int)  $l["birthDate"],
-                    "email" => (string)  $l["email"],
-                    "allowLogin" => (bool)  $l["allowLogin"],
-                    "isStaff" => (bool)  $l["isStaff"],
-                    "enabled" => (bool)  $l["enabled"],
-                ],
+                "data" => [],
                 "lastEdit" => (int) $l["lastEdit"],
                 "created" => (int) $l["created"]
             ];
+
+            if (in_array("id", array_keys($l))) $to["data"]["id"] = (int) $l["id"];
+            if (in_array("name", array_keys($l))) $to["data"]["name"] = (string) $l["name"];
+            if (in_array("surname", array_keys($l))) $to["data"]["surname"] = (string) $l["surname"];
+            if (in_array("birthDate", array_keys($l))) $to["data"]["birthDate"] = (string) date("Y-m-d", $l["birthDate"]);
+            if (in_array("email", array_keys($l))) $to["data"]["email"] = (string) $l["email"];
+            if (in_array("allowLogin", array_keys($l))) $to["data"]["allowLogin"] = (bool) $l["allowLogin"];
+            if (in_array("isStaff", array_keys($l))) $to["data"]["isStaff"] = (bool) $l["isStaff"];
+            if (in_array("enabled", array_keys($l))) $to["data"]["enabled"] = (bool) $l["enabled"];
+
+            $final[] = $to;
         }
-        if ($paInfo["pageSize"] == 0) $final = Tables::paginateArray($final, $paInfo);
+        if ($paInfo["pageSize"] !== 0) $final = Tables::paginateArray($final, $paInfo);
         $ar = new ApiResult();
         $ar->data($final);
         return $ar;
@@ -148,7 +150,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
         $s->execute([":id" => $this->id]);
         $r = $s->fetch(PDO::FETCH_ASSOC);
         $a = new ApiResult();
-        if (!$r || !$this->u->isStaff) {
+        if (!$r) {
             $a->error(QError::NOT_FOUND);
             $a->send();
         } else {
@@ -265,7 +267,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
      */
     public function toObj(): array
     {
-        return [
+        $o = [
             "type" => get_class($this),
             "version" => User::version,
             "id" => $this->id,
@@ -275,12 +277,13 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
                 "email" => $this->email,
                 "isStaff" => $this->isStaff,
                 "allowLogin" => $this->allowLogin,
-                "birthDate" => $this->birthDate,
-                "token" => $this->token,
+                "birthDate" => date("Y-m-d", $this->birthDate),
             ],
             "lastEdit" => $this->lastEdit,
             "created" => $this->created
         ];
+        if ($this->u->id == $this->id) $o["data"]["token"] = $this->token;
+        return $o;
     }
     /**
      * Convert array object to User
@@ -291,13 +294,16 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
     public function fromObj(array $object): void
     {
         if ($object["type"] != get_class($this) || $object["version"] != User::version) throw new ObjectMismatch();
+        // YYYY-MM-DD date
+        $tdate = explode("/", $object["data"]["birthDate"]);
+        $fdate = mktime(0, 0, 0, $tdate[1], $tdate[2], $tdate[0]);
         $this->id = (int) $object["id"];
         $this->name = (string) $object["data"]["name"];
         $this->surname = (string) $object["data"]["surname"];
         $this->email = (string) $object["data"]["email"];
         $this->isStaff = (bool) $object["data"]["isStaff"];
         $this->allowLogin = (bool) $object["data"]["allowLogin"];
-        $this->birthDate = (int) $object["data"]["birthDate"];
+        $this->birthDate = (int) $fdate;
         $this->token = (int) $object["data"]["token"];
         $this->lastEdit = (int) $object["lastEdit"];
         $this->created = (int) $object["created"];
@@ -311,6 +317,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
     public function validate(): bool
     {
         if (empty($this->email) || empty($this->name) || empty($this->surname) || !filter_var($this->email, FILTER_SANITIZE_EMAIL)) return false;
+        if ($this->lastEdit < $this->created) return false;
         return true;
     }
     /**
@@ -329,13 +336,14 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
             $a->error(QError::NOT_FOUND);
             $a->send();
         }
-        if (!$res[0]["isStaff"] || $res[0]["allowLogin"]) {
+        if (!$res[0]["isStaff"] || !$res[0]["allowLogin"]) {
             $a = new ApiResult();
             $a->error(QError::UNAUTHORIZED);
             $a->send();
         }
         $this->u = new User($this->pdo, null);
         $this->u->isStaff = true;
+        $this->u->id = $res[0]["id"];
         $this->load($res[0]["id"]);
     }
     /**
@@ -376,7 +384,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
             $a->error(QError::UNAUTHORIZED);
             $a->send();
         }
-        
+
         $this->u = new User($this->pdo, null);
         $this->u->isStaff = true;
         $this->load($r["id"]);

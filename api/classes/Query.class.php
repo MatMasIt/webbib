@@ -64,20 +64,10 @@ class Query implements ObjSerialize
         "!=",
         "SEARCH"
     ];
-    public function  __construct()
+    public function  __construct(PDO $pdo)
     {
         $this->sql = "SELECT ";
-    }
-    /**
-     * Set PDO object
-     *
-     * @param PDO $pdo PDO object
-     *
-     * @return void
-     */
-    function setPDO(PDO $pdo): void
-    {
-        $this->PDO = $pdo;
+        $this->pdo = $pdo;
     }
     /**
      * Get information about the pagination
@@ -180,6 +170,7 @@ class Query implements ObjSerialize
         if ($i == 0) $this->sql .= " * ";
         $this->sql .= " FROM " . $this->table . " WHERE ";
         $i = 0;
+        if(count($this->clauses)==0) $this->sql.=" 1=1 ";
         foreach ($this->clauses as $c) {
             if ($c[1] == "SEARCH") $this->sql .= " trim(lower( ";
             if (Tables::hasColumn($this->table, $c[0])) {
@@ -233,13 +224,16 @@ class Query implements ObjSerialize
     public function fromObj(array $object): void
     {
         if ($object["type"] != get_class($this) || $object["version"] != Query::version) throw new ObjectMismatch();
+        $this->clauses = [];
         foreach ($object["clasuses"] as $clause) {
             $this->clause($clause["a"], $clause["operation"], $clause["b"]);
         }
-        $this->limitCols($object["columns"]);
-        $this->setSorters($object["sorters"]);
+        $this->limitCols($object["columns"] ?: []);
+        $this->setSorters($object["sorters"] ?: []);
         if ($object["pagination"]) {
             $this->setPagination($object["pagination"]["size"], $object["pagination"]["start"] ?: 0, $object["pagination"]["noPages"] ?: 1);
+        } else {
+            $this->setPagination(0, 0, 0);
         }
     }
     /**

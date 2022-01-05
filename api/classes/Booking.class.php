@@ -88,24 +88,25 @@ class Booking implements CRUDL, ObjSerialize, Validation
         $final = [];
         $paInfo = $q->getPaginationInfo();
         foreach ($q->execute() as $l) {
-            $final[] = [
+            $to = [
                 "type" => (string) get_class($this),
                 "version" => (string) Booking::version,
-                "data" => [
-                    "id" => (int) $l["id"],
-                    "start" => (int)  $l["start"],
-                    "end" => (int)  $l["end"],
-                    "librarianId" => (int)  $l["librarianId"],
-                    "bookerId" => (int)  $l["bookerId"],
-                    "gaveBackDate" => (int)  $l["gaveBackDate"],
-                    "privateComment" => (string)  $l["privateComment"],
-                    "approved" => (bool)  $l["approved"]
-                ],
+                "data" => [],
                 "lastEdit" => (int) $l["lastEdit"],
                 "created" => (int) $l["created"]
             ];
+
+            if (in_array("id", array_keys($l))) $to["data"]["id"] = (int) $l["id"];
+            if (in_array("start", array_keys($l))) $to["data"]["start"] = (int) $l["start"];
+            if (in_array("end", array_keys($l))) $to["data"]["end"] = (int) $l["end"];
+            if (in_array("libararianId", array_keys($l))) $to["data"]["libararianId"] = (int) $l["libararianId"];
+            if (in_array("bookerId", array_keys($l))) $to["data"]["bookerId"] = (int) $l["bookerId"];
+            if (in_array("gaveBackDate", array_keys($l))) $to["data"]["gaveBackDate"] = (int) $l["gaveBackDate"];
+            if (in_array("privateComment", array_keys($l))) $to["data"]["privateComment"] = (string) $l["privateComment"];
+            if (in_array("approved", array_keys($l))) $to["data"]["approved"] = (int) $l["gaveBackDate"];
+            $final[] = $to;
         }
-        if ($paInfo["pageSize"] == 0) $final = Tables::paginateArray($final, $paInfo);
+        if ($paInfo["pageSize"] !== 0) $final = Tables::paginateArray($final, $paInfo);
         $ar = new ApiResult();
         $ar->data($final);
         return $ar;
@@ -161,6 +162,7 @@ class Booking implements CRUDL, ObjSerialize, Validation
             $a->error(QError::UNAUTHORIZED);
             $a->send();
         }
+        $this->librarianId = $this->u->id; // force the id, cannot impersonate someone else on creation
         $this->lastEdit = time();
         $this->created = time();
         $this->emailToken = bin2hex(random_bytes(16));
@@ -285,7 +287,13 @@ class Booking implements CRUDL, ObjSerialize, Validation
      */
     public function validate(): bool
     {
-        if (empty($this->librarianId) || empty($this->bookerId)) return false;
+        if (empty($this->librarianId) || empty($this->bookerId) || empty($this->start) || empty($this->end)) return false;
+        if ($this->start > $this->end || $this->gaveBackDate > $this->start) return false;
+        if (!User::exists($this->pdo, $this->bookerId) || !User::exists($this->pdo, $this->librarianId)) return false;
+        $u = new User($this->pdo, $this->u);
+        $u->load($this->librarianId);
+        if (!$u->isStaff) return false;
+        if ($this->lastEdit < $this->created) return false;
         return true;
     }
 

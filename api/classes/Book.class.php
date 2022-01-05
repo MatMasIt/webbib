@@ -158,41 +158,40 @@ class Book implements CRUDL, ObjSerialize, Validation
         $paInfo = $q->getPaginationInfo();
         foreach ($q->execute() as $l) {
             if (!$l["isPublic"] && !$this->u->isStaff) continue;
-            $final[] = [
+            $to = [
                 "type" => (string) get_class($this),
                 "version" => (string) Book::version,
-                "data" => [
-                    "id" => (int) $l["id"],
-                    "genre" => (string)  $l["genre"],
-                    "title" => (string)  $l["title"],
-                    "authors" => (string)  $l["authors"],
-                    "editor" => (string)  $l["editor"],
-                    "serie" => (string)  $l["serie"],
-                    "language" => (string)  $l["language"],
-                    "topic" => (string)  $l["topic"],
-                    "isbn" => (string)  $l["isbn"],
-                    "publicNotes" => (string)  $l["publicNotes"],
-                    "privateNotes" => (string)  $l["privateNotes"],
-                    "location" => (string)  $l["location"],
-                    "date" => (int) $l["date"],
-                    "inventory" => (string)  $l["inventory"],
-                    "noPages" => (string)  $l["noPages"],
-                    "bibliographicalLevel" => (string)  $l["bibliographicalLevel"],
-                    "dewey" =>  (string)  $l["dewey"],
-                    "publishingCountry" => (string)  $l["publishingCountry"],
-                    "editorPlace" => (string)  $l["dewey"],
-                    "curator" => (string)  $l["curator"],
-                    "type" => (string)  $l["type"],
-                    "translation" => (string)  $l["translation"],
-                    "description" => (string)  $l["description"],
-                    "identification" => (string)  $l["identification"]
-                ],
+                "data" => [],
                 "isPublic" => (bool) $l["isPublic"],
                 "lastEdit" => (int) $l["lastEdit"],
                 "created" => (int) $l["created"]
             ];
+            if (in_array("id", array_keys($l))) $to["data"]["id"] = (int) $l["id"];
+            if (in_array("genre", array_keys($l))) $to["data"]["genre"] = (string) $l["genre"];
+            if (in_array("title", array_keys($l))) $to["data"]["title"] = (string) $l["title"];
+            if (in_array("authors", array_keys($l))) $to["data"]["authors"] = (int) $l["authors"];
+            if (in_array("editor", array_keys($l))) $to["data"]["editor"] = (string) $l["editor"];
+            if (in_array("serie", array_keys($l))) $to["data"]["serie"] = (string) $l["serie"];
+            if (in_array("language", array_keys($l))) $to["data"]["language"] = (string) $l["language"];
+            if (in_array("topic", array_keys($l))) $to["data"]["topic"] = (string) $l["topic"];
+            if (in_array("isbn", array_keys($l))) $to["data"]["isbn"] = (string) $l["isbn"];
+            if (in_array("publicNotes", array_keys($l))) $to["data"]["publicNotes"] = (string) $l["publicNotes"];
+            if (in_array("privateNotes", array_keys($l))) $to["data"]["privateNotes"] = (string) $l["privateNotes"];
+            if (in_array("location", array_keys($l))) $to["data"]["location"] = (string) $l["location"];
+            if (in_array("date", array_keys($l))) $to["data"]["date"] = (string) $l["date"];
+            if (in_array("inventory", array_keys($l))) $to["data"]["inventory"] = (string) $l["inventory"];
+            if (in_array("noPages", array_keys($l))) $to["data"]["noPages"] = (string) $l["noPages"];
+            if (in_array("bibliographicalLevel", array_keys($l))) $to["data"]["bibliographicalLevel"] = (string) $l["bibliographicalLevel"];
+            if (in_array("dewey", array_keys($l))) $to["data"]["dewey"] = (string) $l["dewey"];
+            if (in_array("curator", array_keys($l))) $to["data"]["curator"] = (string) $l["curator"];
+            if (in_array("type", array_keys($l))) $to["data"]["type"] = (string) $l["type"];
+            if (in_array("translation", array_keys($l))) $to["data"]["translation"] = (string) $l["translation"];
+            if (in_array("description", array_keys($l))) $to["data"]["description"] = (string) $l["description"];
+            if (in_array("identification", array_keys($l))) $to["data"]["identification"] = (string) $l["identification"];
+
+            $final[] = $to;
         }
-        if ($paInfo["pageSize"] == 0) $final = Tables::paginateArray($final, $paInfo);
+        if ($paInfo["pageSize"] !== 0) $final = Tables::paginateArray($final, $paInfo);
         $ar = new ApiResult();
         $ar->data($final);
         return $ar;
@@ -229,7 +228,7 @@ class Book implements CRUDL, ObjSerialize, Validation
             $this->publicNotes = (string) $r["publicNotes"];
             $this->privateNotes = (string) $r["privateNotes"];
             $this->location = (string) $r["location"];
-            $this->date = (int) $r["date"];
+            $this->date = (string) $r["date"];
             $this->inventory = (string) $r["inventory"];
             $this->noPages = (string) $r["noPages"];
             $this->bibliographicalLevel = (string) $r["bibliographicalLevel"];
@@ -356,33 +355,6 @@ class Book implements CRUDL, ObjSerialize, Validation
         if (empty($this->id)) {
             $a->error(QError::NOT_FOUND);
             $a->send();
-            $a = new ApiResult();
-            if (!$this->u->isStaff) {
-                $a->error(QError::UNAUTHORIZED);
-                $a->send();
-            }
-            $s = $this->pdo->prepare("SELECT * FROM " . User::tableName . " WHERE id=:id");
-            $s->execute([":id" => $this->id]);
-            $r = $s->fetch(PDO::FETCH_ASSOC);
-            $a = new ApiResult();
-            if (!$r || (!$this->u->isStaff && $r["isPublic"] == 0)) {
-                $a->error(QError::NOT_FOUND);
-                $a->send();
-            } else {
-                $this->id = (int) $r["id"];
-                $this->name = (string) $r["name"];
-                $this->surname = (string) $r["surname"];
-                $this->birthDate = (int) $r["birthDate"];
-                $this->email = (string) $r["email"];
-                $this->allowLogin = (string) $r["allowLogin"];
-                $this->passwordHash = (string) $r["passwordHash"];
-                $this->isStaff = (bool) $r["isStaff"];
-                $this->enabled = (bool) $r["enabled"];
-                $this->token = (string) $r["token"];
-                $this->emailToken = (string) $r["emailToken"];
-                $this->lastEdit = (string) $r["lastEdit"];
-                $this->created = (string) $r["created"];
-            }
         }
         if (!$this->u->isStaff || !$this->validate()) {
             $a->error(QError::UNAUTHORIZED);

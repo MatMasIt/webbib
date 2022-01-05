@@ -1,18 +1,18 @@
 <?php
-require("interfaces/ObjSerialize.interface.php");
-require("interfaces/CRUDL.interface.php");
-require("interfaces/Validation.interface.php");
-require("interfaces/Authentication.interface.php");
-require("exceptions/ObjectMismatch.exception.class.php");
-require("exceptions/OutOfDatabaseSpecification.exception.class.php");
-require("exceptions/UUIDInvalid.exception.class.php");
-require("classes/UUID.class.php");
-require("classes/ApiResult.class.php");
-require("classes/Query.class.php");
-require("classes/Tables.class.php");
-require("classes/User.class.php");
-require("classes/Book.class.php");
-require("classes/Booking.class.php");
+require "interfaces/ObjSerialize.interface.php";
+require "interfaces/CRUDL.interface.php";
+require "interfaces/Validation.interface.php";
+require "interfaces/Authentication.interface.php";
+require "exceptions/ObjectMismatch.exception.class.php";
+require "exceptions/OutOfDatabaseSpecification.exception.class.php";
+require "exceptions/UUIDInvalid.exception.class.php";
+require "classes/UUID.class.php";
+require "classes/ApiResult.class.php";
+require "classes/Query.class.php";
+require "classes/Tables.class.php";
+require "classes/User.class.php";
+require "classes/Book.class.php";
+require "classes/Booking.class.php";
 try {
     $data = json_decode(file_get_contents("php://input"), true);
     $dbh = new PDO('sqlite:db.sqlite3');
@@ -29,7 +29,7 @@ try {
     switch ($data["action"]) {
         case "books.list":
             $b = new Book($dbh, $u);
-            $q = new Query();
+            $q = new Query($dbh);
             $q->fromObj($data["query"]);
             $a = $b->list($q);
             $a->send();
@@ -74,7 +74,7 @@ try {
             break;
         case "bookings.list":
             $b = new Booking($dbh, $u);
-            $q = new Query();
+            $q = new Query($dbh);
             $q->fromObj($data["query"]);
             $a = $b->list($q);
             $a->send();
@@ -122,13 +122,13 @@ try {
             break;
         case "users.list":
             $uf = new User($dbh, $u);
-            $q = new Query();
+            $q = new Query($dbh);
             $q->fromObj($data["query"]);
             $a = $uf->list($q);
             $a->send();
             break;
         case "users.get":
-            $uf = new User($this->pdo, $u);
+            $uf = new User($dbh, $u);
             $uf->load((int) $data["id"]);
             $o = $uf->toObj();
             $a = new ApiResult();
@@ -136,7 +136,7 @@ try {
             $a->send();
             break;
         case "users.create":
-            $uf = new User($this->pdo, $u);
+            $uf = new User($dbh, $u);
             $uf->fromObj($data["object"]);
             $a = $uf->create();
             $a->send();

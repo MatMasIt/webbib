@@ -391,11 +391,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Query.html#method___construct"
         },                {
-            "fqsen": "\\Query\u003A\u003AsetPDO\u0028\u0029",
-            "name": "setPDO",
-            "summary": "Set\u0020PDO\u0020object",
-            "url": "classes/Query.html#method_setPDO"
-        },                {
             "fqsen": "\\Query\u003A\u003AgetPaginationInfo\u0028\u0029",
             "name": "getPaginationInfo",
             "summary": "Get\u0020information\u0020about\u0020the\u0020pagination",
