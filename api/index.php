@@ -165,6 +165,12 @@ try {
             $a = $uf->save();
             $a->send();
             break;
+        case "users.me":
+            $o = $u->toObj();
+            $a = new ApiResult();
+            $a->data($o);
+            $a->send();
+            break;
         default:
             $a = new ApiResult();
             $a->data([]);
