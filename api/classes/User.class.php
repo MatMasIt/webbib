@@ -304,7 +304,7 @@ class User implements CRUDL, ObjSerialize, Validation, Authentication
         $this->isStaff = (bool) $object["data"]["isStaff"];
         $this->allowLogin = (bool) $object["data"]["allowLogin"];
         $this->birthDate = (int) $fdate;
-        $this->token = (int) $object["data"]["token"];
+        $this->token = (string) $object["data"]["token"];
         $this->lastEdit = (int) $object["lastEdit"];
         $this->created = (int) $object["created"];
     }

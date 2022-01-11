@@ -1,5 +1,6 @@
-interface Authentication {
-    fromToken(token: string): ApiResult<boolean>;
-    login(email: string, password: string): ApiResult<boolean>;
-    logout(): ApiResult<boolean>;
+
+export interface Authentication {
+    fromToken(token: string): Promise<boolean>;
+    login(email: string, password: string): Promise<boolean>;
+    logout(): Promise<boolean>;
 }

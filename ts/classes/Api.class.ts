@@ -1,4 +1,4 @@
-class Api {
+export class Api {
     version = "1.0.0";
     path = "api";
     constructor() {

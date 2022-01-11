@@ -1,3 +1,3 @@
-class Query{
+export class Query{
     
 }

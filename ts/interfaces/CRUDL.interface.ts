@@ -1,7 +1,9 @@
-interface CRUDL {
+import { Query } from "../classes/Query.class";
+
+export interface CRUDL {
     load(id: bigint): void;
-    list(q: Query): ApiResult;
-    create(): ApiResult;
-    save(): ApiResult;
-    delete(): ApiResult;
+    list(q: Query): Promise<object>;
+    create(): Promise<boolean>;
+    save(): Promise<boolean>;
+    delete(): Promise<boolean>;
 }

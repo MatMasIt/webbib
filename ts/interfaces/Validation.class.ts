@@ -1,3 +1,0 @@
-interface Validation {
-    validate(): boolean;
-}

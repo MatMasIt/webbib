@@ -1,4 +1,4 @@
-interface ObjSerialize {
+export interface ObjSerialize {
     toObj(): object;
     fromObj(o: object): void;
 }
