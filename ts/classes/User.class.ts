@@ -6,13 +6,13 @@ import { ObjSerialize } from "../interfaces/ObjSerialize.interface";
 import { Query } from "./Query.class";
 export class User implements Authentication, CRUDL, Validation, ObjSerialize {
     version = "1.0.0";
-    id: bigint;
+    id: number;
     name: string;
     surname: string;
     email: string;
     birthDate: string;
-    created: bigint;
-    lastEdit: bigint;
+    created: number;
+    lastEdit: number;
     allowLogin: boolean;
     isStaff: boolean;
     token: string | null;
@@ -40,7 +40,7 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
     }
     fromObj(o: object): void {
         if (o["type"] != "User" || o["version"] != "1.0.0") throw new ObjectMismatch();
-        this.id = BigInt(o["id"]);
+        this.id = parseInt(o["id"]);
         this.name = String(o["data"]["name"]);
         this.surname = String(o["data"]["surname"]);
         this.email = String(o["data"]["email"]);
@@ -48,8 +48,8 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
         this.allowLogin = Boolean(o["data"]["allowLogin"]);
         this.birthDate = String(o["data"]["birthDate"]);
         this.token = String(o["data"]["token"]);
-        this.lastEdit = BigInt(o["lastEdit"]);
-        this.created = BigInt(o["created"]);
+        this.lastEdit = parseInt(o["lastEdit"]);
+        this.created = parseInt(o["created"]);
     }
     validate(): boolean {
         let validateEmail = (email) => {
@@ -64,34 +64,96 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
         if (this.lastEdit < this.created) return false;
         return true;
     }
-    load(id: bigint): void {
-        throw new Error("Method not implemented.");
+    load(id: number): Promise<boolean> {
+        return new Promise<boolean>(function (resolve, reject) {
+            let req = this.api.send({
+                "action": "users.get",
+                "sessionToken": this.u.token ? this.u.token : this.token,
+                "id": id
+            });
+            req.then(function ok(data) {
+                this.fromObj(data["data"]);
+                resolve(true);
+            }.bind(this));
+            req.catch(function no() {
+                reject(false);
+            });
+        }.bind(this));
     }
     list(q: Query): Promise<object> {
-        throw new Error("Method not implemented.");
+        return new Promise<object>(function (resolve, reject) {
+            let req = this.api.send({
+                "action": "users.list",
+                "sessionToken": this.u.token ? this.u.token : this.token,
+                "query": q.toObj()
+            });
+            req.then(function ok(data) {
+                resolve(data["data"]);
+            }.bind(this));
+            req.catch(function no() {
+                reject(false);
+            });
+        }.bind(this));
     }
     create(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return new Promise<boolean>(function (resolve, reject) {
+            let req = this.api.send({
+                "action": "users.create",
+                "sessionToken": this.u.token,
+                "object": this.toObj()
+            });
+            req.then(function ok(data) {
+                resolve(true);
+            }.bind(this));
+            req.catch(function no() {
+                reject(false);
+            });
+        }.bind(this));
     }
     save(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return new Promise<boolean>(function (resolve, reject) {
+            let req = this.api.send({
+                "action": "users.edit",
+                "sessionToken": this.u.token ? this.u.token : this.token,
+                "object": this.toObj()
+            });
+            req.then(function ok(data) {
+                resolve(true);
+            }.bind(this));
+            req.catch(function no() {
+                reject(false);
+            });
+        }.bind(this));
     }
     delete(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        return new Promise<boolean>(function (resolve, reject) {
+            let req = this.api.send({
+                "action": "users.remove",
+                "sessionToken": this.u.token ? this.u.token : this.token,
+                "id": this.id
+            });
+            req.then(function ok(data) {
+                this.fromObj(data["data"]);
+                resolve(true);
+            }.bind(this));
+            req.catch(function no() {
+                reject(false);
+            });
+        }.bind(this));
     }
     fromToken(token: string): Promise<boolean> {
         return new Promise<boolean>(function (resolve, reject) {
             let req = this.api.send({
                 "action": "users.me",
-                "sessionToken": this.token
+                "sessionToken": token
             });
             req.then(function ok(data) {
-                this.fromObj(data);
+                this.fromObj(data["data"]);
                 resolve(true);
             }.bind(this));
-            req.then, function no() {
+            req.catch(function no() {
                 reject(false);
-            }
+            });
         }.bind(this));
     }
     login(email: string, password: string): Promise<boolean> {
@@ -102,26 +164,26 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
                 "password": password
             });
             req.then(function ok(data) {
-                this.fromObj(data);
+                this.fromObj(data["data"]);
                 resolve(true);
             }.bind(this));
-            req.then, function no() {
+            req.catch(function no() {
                 reject(false);
-            }
+            });
         }.bind(this));
     }
     logout(): Promise<boolean> {
         return new Promise<boolean>(function (resolve, reject) {
             let req = this.api.send({
                 "action": "users.logout",
-                "sessionToken": this.token
+                "sessionToken": this.u.token ? this.u.token : this.token
             });
             req.then(function ok(data) {
                 resolve(true);
             }.bind(this));
-            req.then, function no() {
+            req.catch(function no() {
                 reject(false);
-            }
+            });
         }.bind(this));
     }
 }
