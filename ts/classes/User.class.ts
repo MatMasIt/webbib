@@ -5,6 +5,7 @@ import { Validation } from "../interfaces/Validation.interface";
 import { ObjSerialize } from "../interfaces/ObjSerialize.interface";
 import { Query } from "./Query.class";
 export class User implements Authentication, CRUDL, Validation, ObjSerialize {
+    classN = "User";
     version = "1.0.0";
     id: number;
     name: string;
@@ -23,8 +24,8 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
     }
     toObj(): object {
         return {
-            "type": "User",
-            "version": "1.0.0",
+            "type": this.classN,
+            "version": this.version,
             "id": this.id,
             "data": {
                 "name": this.name,
@@ -39,7 +40,7 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
         };
     }
     fromObj(o: object): void {
-        if (o["type"] != "User" || o["version"] != "1.0.0") throw new ObjectMismatch();
+        if (o["type"] != this.classN || o["version"] != this.version) throw new ObjectMismatch();
         this.id = parseInt(o["id"]);
         this.name = String(o["data"]["name"]);
         this.surname = String(o["data"]["surname"]);

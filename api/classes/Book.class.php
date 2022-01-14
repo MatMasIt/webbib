@@ -373,7 +373,7 @@ class Book implements CRUDL, ObjSerialize, Validation
      */
     public function validate(): bool
     {
-        if (empty($this->titolo)) return false;
+        if (empty($this->title)) return false;
         if ($this->lastEdit < $this->created) return false;
     }
     /**
