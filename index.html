@@ -21,28 +21,7 @@
 
     <script type="text/javascript"
         src="https://rawcdn.githack.com/nextapps-de/winbox/0.2.0/dist/js/winbox.min.js"></script>
-    <script type="text/javascript">
-        var listBox = null;
-        function showList() {
-            if (!listBox) {
-                listBox = new WinBox({
-                    title: "Elenco",
-                    class: "white",
-                    url: "list.html",
-                    onclose: function () {
-                        listBox = null;
-                    }
-                });
-            }
-            else {
-                listBox.focus();
-            }
-        }
-        document.getElementsByClassName("list-button")[0].addEventListener("click", function click() {
-            showList();
-        });
-        showList();
-    </script>
+    <script src="js/ts/controllers/Main.js"></script>
 </body>
 
 </html>

@@ -3,10 +3,16 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "es5",
-        "lib": ["dom", "es2015", "es5", "es6"],
+        "lib": [
+            "dom",
+            "es2015",
+            "es5",
+            "es6"
+        ],
         "module": "commonjs",
         "sourceMap": true,
         "sourceRoot": "ts",
-        "outDir": "js"
+        "outDir": "js",
+        "allowJs": true
     }
 }
