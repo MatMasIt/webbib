@@ -1,0 +1,61 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS "Bookings" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"start"	INTEGER NOT NULL,
+	"end"	INTEGER NOT NULL,
+	"librarianId"	INTEGER,
+	"bookerId"	INTEGER NOT NULL,
+	"gaveBackDate"	INTEGER,
+	"privateComment"	TEXT,
+	"approved"	INTEGER,
+	"lastEdit"	INTEGER,
+	"created"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "Libri" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"genre"	TEXT,
+	"title"	TEXT NOT NULL,
+	"authors"	TEXT,
+	"editor"	TEXT,
+	"serie"	TEXT,
+	"language"	TEXT,
+	"topic"	TEXT,
+	"isbn"	TEXT,
+	"publicNotes"	TEXT,
+	"privateNotes"	TEXT,
+	"location"	TEXT,
+	"date"	TEXT,
+	"inventory"	TEXT,
+	"noPages"	TEXT,
+	"bibliographicLevel"	TEXT,
+	"dewey"	TEXT,
+	"publishingCountry"	TEXT,
+	"editorPlace"	TEXT,
+	"curator"	TEXT,
+	"type"	TEXT,
+	"translation"	TEXT,
+	"description"	TEXT,
+	"identification"	TEXT,
+	"isPublic"	INTEGER NOT NULL DEFAULT 1,
+	"lastEdit"	INTEGER,
+	"created"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "Users" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"name"	TEXT,
+	"surname"	TEXT,
+	"birthDate"	INTEGER,
+	"email"	TEXT NOT NULL UNIQUE,
+	"allowLogin"	INTEGER,
+	"passwordHash"	TEXT,
+	"isStaff"	INTEGER,
+	"enabled"	INTEGER,
+	"token"	TEXT,
+	"emailToken"	TEXT,
+	"lastEdit"	INTEGER,
+	"created"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+COMMIT;
