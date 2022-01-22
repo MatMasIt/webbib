@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Book = void 0;
 var Book = /** @class */ (function () {
-    function Book() {
+    function Book(api, u) {
         this.classN = "Book";
         this.version = "1.0.0";
+        this.api = api;
+        this.u = u;
     }
     Book.prototype.load = function (id) {
         return new Promise(function (resolve, reject) {

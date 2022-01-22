@@ -1,12 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
+var UnfitUserObject_exception_1 = require("../exceptions/UnfitUserObject.exception");
 var User = /** @class */ (function () {
     function User(api) {
         this.classN = "User";
         this.version = "1.0.0";
         this.api = api;
     }
+    User.prototype.saveToken = function () {
+        if (this.u != null)
+            throw new UnfitUserObject_exception_1.UnfitUserObject();
+        localStorage.setItem("token", this.token);
+        return true;
+    };
+    User.prototype.loadToken = function () {
+        if (this.u != null)
+            throw new UnfitUserObject_exception_1.UnfitUserObject();
+        this.token = localStorage.getItem("token");
+        return true;
+    };
+    User.prototype.clearToken = function () {
+        if (this.u != null)
+            throw new UnfitUserObject_exception_1.UnfitUserObject();
+        localStorage.removeItem("token");
+        this.token = "";
+        return true;
+    };
     User.prototype.toObj = function () {
         return {
             "type": this.classN,
@@ -143,6 +163,8 @@ var User = /** @class */ (function () {
         }.bind(this));
     };
     User.prototype.login = function (email, password) {
+        if (this.u != null)
+            throw new UnfitUserObject_exception_1.UnfitUserObject();
         return new Promise(function (resolve, reject) {
             var req = this.api.send({
                 "action": "users.login",
@@ -159,6 +181,8 @@ var User = /** @class */ (function () {
         }.bind(this));
     };
     User.prototype.logout = function () {
+        if (this.u != null)
+            throw new UnfitUserObject_exception_1.UnfitUserObject();
         return new Promise(function (resolve, reject) {
             var req = this.api.send({
                 "action": "users.logout",

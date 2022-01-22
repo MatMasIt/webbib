@@ -38,6 +38,10 @@ export class Book implements CRUDL, Validation, ObjSerialize {
     isPublic: boolean;
     api: Api;
     u: User;
+    constructor(api: Api, u: User) {
+        this.api = api;
+        this.u = u;
+    }
     load(id: number): Promise<boolean> {
         return new Promise<boolean>(function (resolve, reject) {
             let req = this.api.send({

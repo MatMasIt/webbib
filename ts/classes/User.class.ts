@@ -4,7 +4,9 @@ import { CRUDL } from "../interfaces/CRUDL.interface";
 import { Validation } from "../interfaces/Validation.interface";
 import { ObjSerialize } from "../interfaces/ObjSerialize.interface";
 import { Query } from "./Query.class";
-export class User implements Authentication, CRUDL, Validation, ObjSerialize {
+import { TokenStorage } from "../interfaces/TokenStorage.interface";
+import { UnfitUserObject } from "../exceptions/UnfitUserObject.exception";
+export class User implements Authentication, CRUDL, Validation, ObjSerialize, TokenStorage {
     classN = "User";
     version = "1.0.0";
     id: number;
@@ -21,6 +23,22 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
     u: User | null;
     constructor(api: Api) {
         this.api = api;
+    }
+    saveToken(): boolean {
+        if (this.u != null) throw new UnfitUserObject();
+        localStorage.setItem("token", this.token);
+        return true;
+    }
+    loadToken(): boolean {
+        if (this.u != null) throw new UnfitUserObject();
+        this.token = localStorage.getItem("token");
+        return true;
+    }
+    clearToken(): boolean {
+        if (this.u != null) throw new UnfitUserObject();
+        localStorage.removeItem("token");
+        this.token = "";
+        return true;
     }
     toObj(): object {
         return {
@@ -158,6 +176,7 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
         }.bind(this));
     }
     login(email: string, password: string): Promise<boolean> {
+        if (this.u != null) throw new UnfitUserObject();
         return new Promise<boolean>(function (resolve, reject) {
             let req = this.api.send({
                 "action": "users.login",
@@ -174,6 +193,7 @@ export class User implements Authentication, CRUDL, Validation, ObjSerialize {
         }.bind(this));
     }
     logout(): Promise<boolean> {
+        if (this.u != null) throw new UnfitUserObject();
         return new Promise<boolean>(function (resolve, reject) {
             let req = this.api.send({
                 "action": "users.logout",

@@ -9,9 +9,9 @@ helloBox.focus();
 function showList() {
     if (!listBox) {
         listBox = new WinBox({
-            title: "Elenco",
+            title: "Libri",
             class: "white",
-            url: "list.html",
+            url: "books.html",
             onclose: function () {
                 listBox = null;
                 return false;
@@ -19,10 +19,11 @@ function showList() {
         });
     }
     else {
+        listBox.minimize(false);
         listBox.focus();
     }
 }
-document.getElementsByClassName("list-button")[0].addEventListener("click", function listView() {
+document.getElementsByClassName("books")[0].addEventListener("click", function listView() {
     showList();
 });
 showList();
