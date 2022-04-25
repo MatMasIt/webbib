@@ -11,3 +11,6 @@
 ![GitHub](https://img.shields.io/github/license/MatMasIt/webbib?)
 
 Web-based lamp library management software
+
+
+Work in progress, but mostly stalled
